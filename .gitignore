@@ -1,0 +1,37 @@
+# =========================
+# Python
+# =========================
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# =========================
+# OS / Editor
+# =========================
+.DS_Store
+.vscode/
+
+# =========================
+# Gradio
+# =========================
+.gradio/
+
+# =========================
+# Data / Media (DO NOT COMMIT)
+# =========================
+videos/
+clips/
+Original Videos/
+Output Clips/
+
+face_clip/clips/
+face_clip/output_clips/
+face_clip/models/
+
+# =========================
+# Notebooks (optional)
+# =========================
+.ipynb_checkpoints/
+f
