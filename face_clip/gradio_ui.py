@@ -15,7 +15,7 @@ def run_video(video_file, clip_duration):
 
 
 with gr.Blocks(title="Smart Video Clipping Tool") as demo:
-    gr.Markdown("## 🎬 Smart Video Clipping Tool")
+    gr.Markdown("## 🎬 Sliver: A Smart Video Clipping Tool")
     gr.Markdown(
         "Upload a video. The system will **analyze faces & people**, score scenes, "
         "and generate a **highlight clip** of the requested duration."
