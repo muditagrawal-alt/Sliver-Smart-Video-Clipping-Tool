@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Sliver | AI Video Summaries{% endblock %}
+
+{% block content %}
+<section class="home-hero">
+  <div class="site-shell hero-center">
+    <p class="hero-script">Greetings from</p>
+    <div class="hero-word" aria-label="Sliver">
+      <span>S</span>
+      <span>L</span>
+      <span>I</span>
+      <span>V</span>
+      <span>E</span>
+      <span>R</span>
+    </div>
+    <p class="hero-caption">AI VIDEO SUMMARIES</p>
+    <p class="hero-copy">
+      Sliver turns long footage into shorter, cleaner recaps for YouTube videos, podcasts, music videos,
+      reels, interviews, lectures, and films. It is built to keep the key moments and more of the meaning.
+    </p>
+    <div class="hero-actions">
+      <a class="button button-primary" href="{{ workspace_href }}">Start Summarizing</a>
+      <a class="button button-secondary" href="/auth?mode=signup">Create Account</a>
+    </div>
+    <ul class="hero-format-strip">
+      <li>YouTube</li>
+      <li>Podcasts</li>
+      <li>Music Videos</li>
+      <li>Movies</li>
+      <li>Reels</li>
+    </ul>
+    <p class="hero-scroll-note">Scroll to see how Sliver works</p>
+  </div>
+</section>
+
+<section class="site-shell flow-section">
+  <div class="section-intro">
+    <p class="section-script">Why Sliver</p>
+    <h2>A SaaS homepage with one promise: shorter videos that still make sense.</h2>
+  </div>
+
+  <div class="feature-runway">
+    <article class="feature-row">
+      <span class="feature-index">01</span>
+      <div>
+        <h3>Context-first summaries</h3>
+        <p>Sliver does not just grab random peaks. It groups important moments with enough local context so the final output still feels watchable.</p>
+      </div>
+    </article>
+    <article class="feature-row">
+      <span class="feature-index">02</span>
+      <div>
+        <h3>Works across video types</h3>
+        <p>Whether the input is a talking-head podcast, a cinematic film scene, or a music video, the workspace is designed to make the summary flow cleaner.</p>
+      </div>
+    </article>
+    <article class="feature-row">
+      <span class="feature-index">03</span>
+      <div>
+        <h3>From upload to export in one flow</h3>
+        <p>Upload your footage, choose the desired duration, watch the generation progress, then download the finished summary or find it later in your profile.</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="site-shell flow-section">
+  <div class="section-intro">
+    <p class="section-script">How it flows</p>
+    <h2>Three quick steps from raw footage to a finished recap.</h2>
+  </div>
+
+  <div class="story-steps">
+    <div class="story-step">
+      <span>Upload</span>
+      <p>Choose a video and tell Sliver how long the summary should be.</p>
+    </div>
+    <div class="story-step">
+      <span>Generate</span>
+      <p>Track the job in real time as the engine analyzes scenes, renders the clip, and merges audio.</p>
+    </div>
+    <div class="story-step">
+      <span>Keep</span>
+      <p>Download the current output right away and revisit every completed summary from your profile library.</p>
+    </div>
+  </div>
+</section>
+
+<section class="site-shell flow-section closing-section">
+  <p class="section-script">Ready to launch</p>
+  <h2 class="closing-title">Centered on the brand. Focused on the summary.</h2>
+  <p class="closing-copy">
+    The site keeps the postcard-inspired typography and colors, but the product flow is now more SaaS-like:
+    landing page, authentication, a clean workspace, and a dedicated profile with saved outputs.
+  </p>
+  <a class="button button-primary" href="{{ workspace_href }}">Open Workspace</a>
+</section>
+{% endblock %}

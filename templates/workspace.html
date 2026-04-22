@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Sliver | Workspace{% endblock %}
+
+{% block content %}
+<section class="site-shell workspace-shell">
+  <div class="workspace-heading">
+    <p class="section-script">Workspace</p>
+    <h1>Upload on the left. Watch the output build on the right.</h1>
+    <p class="lead">
+      Generate one summary at a time, see live progress updates while it renders, and download the finished clip directly from the output panel.
+    </p>
+  </div>
+
+  <div class="workspace-two-panel">
+    <section class="paper-panel workspace-column">
+      <div class="panel-heading">
+        <p class="section-script">Source video</p>
+        <h2>Create a new summary</h2>
+      </div>
+
+      <form id="workspaceForm" class="workspace-form" enctype="multipart/form-data">
+        <label class="dropzone" for="videoInput">
+          <input id="videoInput" name="video" type="file" accept="video/*" hidden>
+          <span class="dropzone-label">Drop a video here or click to browse</span>
+          <span class="dropzone-hint">Upload a source video and choose the exact summary length you want.</span>
+        </label>
+
+        <div id="previewShell" class="preview-shell" hidden>
+          <video id="videoPreview" controls playsinline></video>
+          <div class="preview-meta">
+            <strong id="videoName">Selected video</strong>
+            <span>Ready for summarization</span>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Summary length</span>
+            <input id="durationInput" type="number" min="1" value="30" required>
+          </label>
+          <label class="field">
+            <span>Unit</span>
+            <select id="durationUnit">
+              <option value="seconds">Seconds</option>
+              <option value="minutes">Minutes</option>
+            </select>
+          </label>
+        </div>
+
+        <button id="generateButton" class="button button-primary wide-button" type="submit">Generate Summary</button>
+      </form>
+    </section>
+
+    <aside class="paper-panel workspace-column output-column">
+      <div class="panel-heading">
+        <p class="section-script">Output</p>
+        <h2>Current summary</h2>
+      </div>
+
+      <div id="progressCard" class="progress-card" data-state="{% if latest_clip %}success{% else %}idle{% endif %}">
+        <div class="progress-copy">
+          <span id="progressLabel">{% if latest_clip %}Latest summary ready to download.{% else %}Waiting for a new summary job.{% endif %}</span>
+          <strong id="progressPercent">{% if latest_clip %}100%{% else %}0%{% endif %}</strong>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <div id="progressFill" class="progress-fill" style="width: {% if latest_clip %}100{% else %}0{% endif %}%"></div>
+        </div>
+      </div>
+
+      <div id="resultEmpty" class="output-empty" {% if latest_clip %}hidden{% endif %}>
+        <h3>No summary yet</h3>
+        <p>The finished video will appear here as soon as the generation job completes.</p>
+      </div>
+
+      <div id="resultShell" class="output-shell" {% if not latest_clip %}hidden{% endif %}>
+        <video id="resultVideo" class="output-video" controls playsinline {% if latest_clip %}src="{{ latest_clip.video_url }}"{% endif %}></video>
+        <div class="output-meta">
+          <h3 id="resultTitle">{% if latest_clip %}{{ latest_clip.source_name }}{% else %}Generated summary{% endif %}</h3>
+          <p id="resultDetails">{% if latest_clip %}{{ latest_clip.duration_label }} · {{ latest_clip.created_label }}{% else %}Your finished output will show here.{% endif %}</p>
+        </div>
+        <a id="resultDownload" class="button button-primary output-download {% if not latest_clip %}is-hidden{% endif %}" href="{% if latest_clip %}{{ latest_clip.download_url }}{% else %}#{% endif %}">
+          Download Clip
+        </a>
+      </div>
+    </aside>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Sliver | Login and Sign Up{% endblock %}
+
+{% block content %}
+<section class="site-shell auth-shell">
+  <div class="auth-layout">
+    <aside class="postcard-panel auth-poster">
+      <p class="postcard-script">Welcome to</p>
+      <div class="postcard-word small" aria-label="Sliver">
+        <span>S</span>
+        <span>L</span>
+        <span>I</span>
+        <span>V</span>
+        <span>E</span>
+        <span>R</span>
+      </div>
+      <p class="postcard-caption">LOGIN FOR YOUR NEXT RECAP</p>
+      <ul class="poster-bullets">
+        <li>Upload long-form source videos</li>
+        <li>Choose the exact summary duration</li>
+        <li>Keep every exported clip in one workspace</li>
+      </ul>
+    </aside>
+
+    <section class="paper-panel auth-card">
+      <div class="section-heading compact">
+        <p class="section-script">Front desk</p>
+        <h1>Sign in or create your account.</h1>
+      </div>
+
+      {% if auth_error %}
+        <div class="flash flash-error">{{ auth_error }}</div>
+      {% endif %}
+      {% if auth_notice %}
+        <div class="flash flash-notice">{{ auth_notice }}</div>
+      {% endif %}
+
+      <div class="auth-tabs" role="tablist" aria-label="Authentication tabs">
+        <button class="auth-tab" data-auth-target="login" type="button">Log in</button>
+        <button class="auth-tab" data-auth-target="signup" type="button">Sign up</button>
+      </div>
+
+      <div class="auth-panels">
+        <form class="auth-form" id="loginPanel" action="/auth/login" method="post">
+          <label class="field">
+            <span>Email</span>
+            <input type="email" name="email" placeholder="you@example.com" required>
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input type="password" name="password" placeholder="Enter your password" required>
+          </label>
+          <button class="button button-primary auth-submit" type="submit">Enter Workspace</button>
+        </form>
+
+        <form class="auth-form" id="signupPanel" action="/auth/signup" method="post">
+          <label class="field">
+            <span>Full name</span>
+            <input type="text" name="name" placeholder="Your full name" required>
+          </label>
+          <label class="field">
+            <span>Email</span>
+            <input type="email" name="email" placeholder="you@example.com" required>
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input type="password" name="password" placeholder="At least 6 characters" required>
+          </label>
+          <button class="button button-primary auth-submit" type="submit">Create Account</button>
+        </form>
+      </div>
+    </section>
+  </div>
+</section>
+{% endblock %}

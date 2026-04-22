@@ -1,5 +1,5 @@
 import gradio as gr
-from pipeline.process_video import process_video
+from face_clip.pipeline.process_video import process_video
 
 
 def run_video(video_file, clip_duration):

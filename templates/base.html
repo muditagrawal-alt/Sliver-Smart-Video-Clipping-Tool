@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Sliver{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bevan:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Yesteryear&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/site.css">
+</head>
+<body class="{{ body_class|default('') }}" data-auth-mode="{{ auth_mode|default('login') }}">
+  <header class="site-shell site-header">
+    <div class="header-band">
+      <a class="brand-lockup" href="/">
+        <span class="brand-mark"></span>
+        <span class="brand-copy">
+          <strong>Sliver</strong>
+          <em>smart video summaries</em>
+        </span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary">
+        <a class="nav-link {% if request_path == '/' %}active{% endif %}" href="/">Home</a>
+        <a class="nav-link {% if request_path.startswith('/workspace') %}active{% endif %}" href="/workspace">Workspace</a>
+        {% if user %}
+          <a class="nav-link {% if request_path.startswith('/profile') %}active{% endif %}" href="/profile">Profile</a>
+          <span class="nav-greeting">{{ user["name"].split(" ")[0] }}</span>
+          <form class="inline-form" action="/auth/logout" method="post">
+            <button class="button button-ghost" type="submit">Log out</button>
+          </form>
+        {% else %}
+          <a class="button button-secondary" href="/auth?mode=login">Log in</a>
+          <a class="button button-primary" href="/auth?mode=signup">Sign up</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-shell site-footer">
+    <div class="footer-band">
+      <p>Sliver summarizes long videos into shorter, more watchable recaps while keeping the moments understandable.</p>
+      <span>© {{ site_year }} Sliver</span>
+    </div>
+  </footer>
+
+  <script src="/static/site.js" defer></script>
+</body>
+</html>

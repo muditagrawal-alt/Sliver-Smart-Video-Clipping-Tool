@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Sliver | Profile{% endblock %}
+
+{% block content %}
+<section class="site-shell profile-shell">
+  <div class="profile-heading">
+    <p class="section-script">Profile</p>
+    <h1>{{ user["name"] }}</h1>
+    <p class="lead">{{ user["email"] }}</p>
+  </div>
+
+  <div class="profile-stats">
+    <article class="stat-card">
+      <span>Total clips</span>
+      <strong>{{ stats.total_clips }}</strong>
+    </article>
+    <article class="stat-card">
+      <span>Total runtime</span>
+      <strong>{{ stats.total_runtime }}</strong>
+    </article>
+    <article class="stat-card">
+      <span>Latest export</span>
+      <strong>{{ stats.latest_clip }}</strong>
+    </article>
+  </div>
+</section>
+
+<section class="site-shell profile-library">
+  <div class="library-heading">
+    <div>
+      <p class="section-script">Your outputs</p>
+      <h2>Saved clips and downloads</h2>
+    </div>
+    <a class="button button-secondary" href="/workspace">Create New Summary</a>
+  </div>
+
+  {% if clips %}
+    <div class="profile-clip-grid">
+      {% for clip in clips %}
+        <article class="clip-card">
+          <video class="clip-video" controls playsinline src="{{ clip.video_url }}"></video>
+          <div class="clip-meta">
+            <div>
+              <h3>{{ clip.source_name }}</h3>
+              <p>{{ clip.duration_label }} · {{ clip.created_label }}</p>
+            </div>
+            <a class="button button-primary" href="{{ clip.download_url }}">Download</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h3>No output clips yet</h3>
+      <p>Your completed summaries will appear here after you generate them in the workspace.</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}
