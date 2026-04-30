@@ -1,301 +1,334 @@
 # Sliver — Smart Video Clipping Tool
-Sliver is an AI-powered smart video clipping tool that automatically generates short highlight clips from long-form videos. It analyzes faces, objects, motion, timestamps, and audio segments to identify high-impact moments, then stitches the selected scenes back together into a concise summary video.
-The project is designed as a full-stack local web application with user authentication, video upload, live progress tracking, generated clip storage, and downloadable outputs.
----
-## Features
-- Upload long-form videos through a web workspace
-- Choose the desired summary duration
-- Detect important scenes using computer vision
-- Use YOLOv8n for face detection
-- Use YOLO11m for person/object detection
-- Score scenes using custom timestamp-based logic
-- Extract and process audio using FFmpeg
-- Stitch selected video/audio segments into a final highlight clip
-- Track generation progress in real time
-- Store generated clip records in SQLite
-- Download previously generated clips from the profile page
-- Includes an older Gradio prototype and a newer web-based interface
----
+
+![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
+![HTML](https://img.shields.io/badge/HTML-E34F26?style=flat-square&logo=html5&logoColor=white)
+![CSS](https://img.shields.io/badge/CSS-1572B6?style=flat-square&logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
+
+Sliver is a local AI-powered video summarization app that turns long-form footage into shorter highlight clips. It combines a full-stack web interface for authentication, upload, progress tracking, and downloads with a computer-vision pipeline that analyzes faces, people, motion, and scene context before exporting a stitched recap with synced audio.
+
+## Overview
+
+Sliver is built for cases where manually scanning through long videos is slow and repetitive. The app is designed to help you:
+
+- upload a source video from a browser-based workspace
+- choose the target summary duration
+- analyze the footage with YOLO-based detection models
+- preserve the strongest moments with local context instead of random isolated cuts
+- generate a downloadable summary clip with merged audio
+- keep a history of exported clips per user
+
+## Demo
+
+### Input Sample
+
+<video src="assets/demo/input.mp4" controls width="100%" poster="assets/screenshots/workspace.png"></video>
+
+Source sample: `assets/demo/input.mp4`  
+Resolution: `1920x1080`  
+Duration: about `4 min 23 sec`
+
+[Open the input video directly](assets/demo/input.mp4)
+
+### Output Sample
+
+<video src="assets/demo/output.mp4" controls width="100%" poster="assets/screenshots/profile.png"></video>
+
+Generated sample: `assets/demo/output.mp4`  
+Resolution: `1920x1080`  
+Duration: about `30 sec`
+
+[Open the generated output directly](assets/demo/output.mp4)
+
+If your Markdown viewer does not render embedded video, use the direct links above.
+
+## Interface Tour
+
+| Home | Authentication |
+| --- | --- |
+| ![Sliver home page](assets/screenshots/home.png) | ![Sliver sign-up page](assets/screenshots/signup.png) |
+| Landing page with the main product pitch and quick entry into the workflow. | Login and sign-up flow for creating a local user account. |
+
+| Workspace | Profile |
+| --- | --- |
+| ![Sliver workspace](assets/screenshots/workspace.png) | ![Sliver profile page](assets/screenshots/profile.png) |
+| Upload a source video, choose the summary length, and watch live progress updates. | Review saved exports, user stats, and previously generated clips. |
+
+## Core Features
+
+- Local web app with home, auth, workspace, and profile pages
+- User authentication backed by SQLite and signed session cookies
+- Video upload flow with inline preview
+- Summary duration input in seconds or minutes
+- Requested summaries currently support `1` to `1800` seconds
+- Background processing with live progress polling
+- Automatic clip generation from long-form video
+- Face and person detection using YOLO models
+- Scene ranking that blends score, motion, and contextual selection
+- FFmpeg-based audio extraction, trimming, concatenation, and muxing
+- Downloadable per-user clip history
+- Legacy Gradio prototype included for quick experimentation
+
+## How Sliver Works
+
+```mermaid
+flowchart TD
+    A["Upload source video"] --> B["Create background job"]
+    B --> C["Read frames with OpenCV"]
+    C --> D["Detect people with YOLO11m"]
+    C --> E["Detect faces with YOLOv8n-face"]
+    C --> F["Estimate motion between frames"]
+    D --> G["Score buffered scenes"]
+    E --> G
+    F --> G
+    G --> H["Select the strongest segments with context"]
+    H --> I["Render summary video"]
+    A --> J["Extract source audio with FFmpeg"]
+    H --> K["Cut matching audio segments"]
+    J --> K
+    K --> L["Concatenate audio"]
+    I --> M["Mux final video and audio"]
+    L --> M
+    M --> N["Save clip metadata in SQLite"]
+    N --> O["Preview and download from workspace/profile"]
+```
+
+### Pipeline Breakdown
+
+1. The web app accepts a video upload and creates a background job.
+2. The backend stores live job status in memory so the workspace can poll progress.
+3. OpenCV reads the input video frame-by-frame.
+4. `YOLO11m` is used for person detection and `YOLOv8n-face-lindevs` is used for face detection.
+5. Each buffered scene receives a score, while motion is estimated from frame differences.
+6. The scene selector boosts stronger moments and preserves surrounding context so the output feels more watchable.
+7. The chosen frames are written into a summary video.
+8. FFmpeg extracts the original audio, cuts matching segments, concatenates them, and muxes everything into the final `.mp4`.
+9. The finished clip is stored locally and recorded in SQLite so it can be reopened later from the profile page.
+
 ## Tech Stack
-### Backend
-- Python
-- WSGI server
-- Jinja2 templates
-- SQLite
-- Threading for background processing
-### AI / Computer Vision
-- YOLOv8n Face
-- YOLO11m
-- OpenCV
-- Ultralytics
-### Video & Audio Processing
-- FFmpeg
-- Frame extraction
-- Audio extraction
-- Audio segment cutting
-- Video/audio muxing
-### Frontend
-- HTML
-- CSS
-- JavaScript
-- Jinja2 templates
-### Prototype UI
-- Gradio
----
-## Project Architecture
+
+| Layer | Tools |
+| --- | --- |
+| Frontend | HTML, CSS, JavaScript, Jinja2 templates |
+| Backend | Python, `wsgiref.simple_server`, threading, SQLite |
+| Computer Vision | OpenCV, Ultralytics, YOLO11m, YOLOv8n-face |
+| Media Processing | FFmpeg, OpenCV `VideoWriter` |
+| Testing | Python `unittest` |
+
+## Project Structure
+
 ```text
-User Upload
-    ↓
-Video stored locally
-    ↓
-Background processing job created
-    ↓
-OpenCV reads frames
-    ↓
-YOLO11m detects people/objects
-    ↓
-YOLOv8n detects faces
-    ↓
-Custom scoring logic ranks scenes
-    ↓
-Top scenes are selected by duration target
-    ↓
-FFmpeg extracts and cuts audio
-    ↓
-Selected video scenes are stitched
-    ↓
-Final highlight clip is generated
-    ↓
-Clip record saved in SQLite
-    ↓
-User downloads output from workspace/profile
-
-⸻
-
-Repository Structure
-
-Sliver-Smart-Video-Clipping-Tool/
-│
-├── app.py                         # Main Python web application
-├── requirements.txt               # Python dependencies
-├── README.md                      # Project documentation
-│
-├── face_clip/
-│   ├── gradio_ui.py               # Early Gradio prototype
-│   ├── run_pipeline.py            # Experimental/legacy pipeline script
-│   └── pipeline/
-│       ├── process_video.py       # Main video processing pipeline
-│       ├── scene_scoring.py       # Scene scoring logic
-│       ├── scene_buffer.py        # Scene buffering logic
-│       ├── scene_understanding.py # Scene selection logic
-│       ├── clip_writer.py         # Video writing utility
-│       └── audio_utils.py         # FFmpeg-based audio utilities
-│
+.
+├── app.py
+├── README.md
+├── requirements.txt
+├── assets/
+│   ├── demo/
+│   │   ├── input.mp4
+│   │   └── output.mp4
+│   └── screenshots/
+│       ├── home.png
+│       ├── profile.png
+│       ├── signup.png
+│       └── workspace.png
+├── static/
+│   ├── site.css
+│   └── site.js
 ├── templates/
-│   ├── base.html                  # Base layout
-│   ├── home.html                  # Landing page
-│   ├── auth.html                  # Login/signup page
-│   ├── workspace.html             # Video upload and generation workspace
-│   └── profile.html               # User profile and saved clips
-│
-├── static/                        # Static frontend assets
-├── tests/                         # Test files
-└── web_data/                      # Runtime uploads, generated clips, SQLite DB
+│   ├── auth.html
+│   ├── base.html
+│   ├── home.html
+│   ├── profile.html
+│   └── workspace.html
+├── tests/
+│   └── test_scene_understanding.py
+└── face_clip/
+    ├── gradio_ui.py
+    ├── run_pipeline.py
+    └── pipeline/
+        ├── audio_utils.py
+        ├── clip_writer.py
+        ├── process_video.py
+        ├── scene_buffer.py
+        ├── scene_scoring.py
+        └── scene_understanding.py
+```
 
-⸻
+Runtime data is created automatically under `web_data/` when the app starts:
 
-How It Works
+```text
+web_data/
+├── uploads/
+├── generated/
+└── sliver.sqlite3
+```
 
-1. Video Upload
+## Installation
 
-The user uploads a source video from the workspace page and selects the target duration for the summary clip.
+### Prerequisites
 
-2. Job Creation
+- Python `3.9+`
+- `ffmpeg` available on your system `PATH`
+- Local model weights for the pipeline
 
-The backend creates a background processing job and tracks progress using an in-memory job dictionary.
+The current pipeline expects these files inside `face_clip/models/`:
 
-3. Frame Analysis
+- `face_clip/models/yolo11m.pt`
+- `face_clip/models/yolov8n-face-lindevs.pt`
 
-OpenCV reads the input video frame by frame. Each frame is passed through the detection models.
+If your clone does not already include them, place the weights there before generating summaries.
 
-4. Face and Object Detection
+### 1. Clone the Repository
 
-Sliver uses:
-
-* YOLOv8n Face for face detection
-* YOLO11m for person/object detection
-
-These detections help identify visually important moments.
-
-5. Scene Scoring
-
-A custom scoring system ranks scenes based on detected faces, people, objects, motion, and timestamp-based scene buffers.
-
-6. Scene Selection
-
-The highest-scoring scenes are selected according to the target clip duration provided by the user.
-
-7. Audio Processing
-
-FFmpeg extracts the original audio, cuts the matching audio segments, joins them, and muxes the final audio with the generated video clip.
-
-8. Output Generation
-
-The final summary clip is saved locally and made available for preview/download.
-
-⸻
-
-Installation
-
-1. Clone the repository
-
+```bash
 git clone https://github.com/muditagrawal-alt/Sliver-Smart-Video-Clipping-Tool.git
 cd Sliver-Smart-Video-Clipping-Tool
+```
 
-2. Create and activate a virtual environment
+### 2. Create and Activate a Virtual Environment
 
-python3 -m venv venv
-source venv/bin/activate
+macOS / Linux:
 
-For Windows:
-
-python -m venv venv
-venv\Scripts\activate
-
-3. Install Python dependencies
-
-pip install -r requirements.txt
-
-4. Install FFmpeg
-
-FFmpeg must be installed separately.
-
-macOS:
-
-brew install ffmpeg
-
-Ubuntu/Debian:
-
-sudo apt update
-sudo apt install ffmpeg
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
 Windows:
 
-Download FFmpeg from the official website and add it to your system PATH.
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
 
-⸻
+### 3. Install Python Dependencies
 
-Running the Web App
+```bash
+pip install -r requirements.txt
+```
 
-Start the app:
+### 4. Install FFmpeg
 
+macOS:
+
+```bash
+brew install ffmpeg
+```
+
+Ubuntu / Debian:
+
+```bash
+sudo apt update
+sudo apt install ffmpeg
+```
+
+Windows:
+
+Install FFmpeg manually and add it to your system `PATH`.
+
+## Running the Web App
+
+Start the local server:
+
+```bash
 python3 app.py
+```
 
-Open in browser:
+Open the app in your browser:
 
+```text
 http://127.0.0.1:8000
+```
 
-If port 8000 is busy:
+### Optional Environment Variables
 
-SLIVER_PORT=8001 python3 app.py
-
-⸻
-
-Environment Variables
-
-Optional environment variables:
-
+```bash
 SLIVER_HOST=127.0.0.1
 SLIVER_PORT=8000
 SLIVER_SECRET_KEY=your-secret-key
+```
 
-For development, the app uses a default local secret key. For production-style deployment, set SLIVER_SECRET_KEY.
+Examples:
 
-⸻
+```bash
+SLIVER_PORT=8001 python3 app.py
+SLIVER_HOST=0.0.0.0 SLIVER_PORT=8000 python3 app.py
+```
 
-User Flow
+## Optional: Run the Legacy Gradio Prototype
 
-Home Page
-   ↓
-Login / Signup
-   ↓
-Workspace
-   ↓
-Upload Video
-   ↓
-Choose Summary Duration
-   ↓
-Generate Highlight Clip
-   ↓
-Preview / Download Output
-   ↓
-Profile Page
-   ↓
-View Saved Clips
+The repository also includes an older Gradio interface in `face_clip/gradio_ui.py`.
 
-⸻
+Install Gradio first if you want to try it:
 
-Data Storage
+```bash
+pip install gradio
+python3 face_clip/gradio_ui.py
+```
 
-Sliver stores runtime data locally under:
+## Typical User Flow
 
-web_data/
+1. Start the web app.
+2. Create an account or log in.
+3. Open the workspace.
+4. Upload a source video.
+5. Choose a summary duration.
+6. Submit the job and watch progress update live.
+7. Preview and download the finished summary.
+8. Revisit the profile page to access saved exports later.
 
-This includes:
+## Runtime Behavior
 
-web_data/
-├── uploads/        # Uploaded source videos
-├── generated/      # Generated highlight clips
-└── sliver.sqlite3  # SQLite database
+- Uploaded videos are stored under `web_data/uploads/`
+- Generated clips are stored under `web_data/generated/`
+- User accounts and clip records are stored in `web_data/sliver.sqlite3`
+- Job progress is kept in an in-memory dictionary while the server is running
+- Download links are served from `/clips/<clip_id>/download`
 
-The SQLite database stores:
+## Testing
 
-* User accounts
-* Generated clip records
-* Clip metadata
+Current automated tests focus on scene selection behavior:
 
-⸻
+```bash
+python3 -m unittest tests/test_scene_understanding.py
+```
 
-Current Limitations
+## Current Limitations
 
-* Runs locally by default
-* Generated files are stored on disk
-* No cloud storage integration yet
-* No real OAuth integration yet
-* Processing speed depends on local CPU/GPU resources
-* Large videos may take significant time to process
-* GitHub Pages cannot run the Python backend
+- The app is designed for local use and currently runs on Python's built-in WSGI server
+- Active job progress is stored in memory, so in-flight job state is lost if the server restarts
+- Generated media is stored on local disk instead of cloud storage
+- No OAuth or third-party identity integration yet
+- Processing speed depends heavily on local hardware and model availability
+- The Gradio prototype is legacy and separate from the main web UI
 
-⸻
+## Why This Project Matters
 
-Future Improvements
+Manual highlight extraction takes time, especially when the input video is long and only a few segments matter. Sliver speeds that up by combining detection, scoring, contextual scene selection, and automated export into a single local workflow that is easier to repeat.
 
-* Cloud storage for generated clips
-* Google/Microsoft OAuth login
-* User dashboard with search and filters
-* Clip deletion and management
-* Thumbnail generation
-* Batch video uploads
-* Better scene classification labels
-* GPU-accelerated deployment
-* Docker support
-* Production deployment using Render, Railway, or a similar Python backend host
+## Good Fit For
 
-⸻
+- YouTube recap creation
+- podcast or interview summarization
+- long-form lecture review
+- rough-cut highlight extraction before manual editing
+- experimenting with local AI-assisted media tooling
 
-Why This Project Matters
+## Possible Next Steps
 
-Manual video editing is time-consuming, especially when working with long-form footage. Sliver reduces that effort by automatically identifying the most meaningful moments and generating short highlight clips. This makes it useful for media teams, content reviewers, editors, analysts, and anyone who needs faster video summarization.
+- cloud storage for uploads and generated clips
+- OAuth or external identity providers
+- better scene labeling and richer scoring signals
+- batch processing for multiple source videos
+- containerized or production deployment workflows
+- search, filters, and lifecycle management for saved clips
 
-⸻
+## Author
 
-Author
-
-Mudit Agrawal
+Mudit Agrawal  
 B.Tech CSE (AI/ML)
 
-⸻
+## License
 
-License
-
-This project is currently shared as a portfolio and learning project. Add a license file before using it for public distribution or commercial use.
+The badge above reflects an intended MIT license, but this repository does not currently include a separate `LICENSE` file. Add one before public redistribution or commercial use.
