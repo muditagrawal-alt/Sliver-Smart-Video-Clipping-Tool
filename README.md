@@ -294,14 +294,7 @@ Current automated tests focus on scene selection behavior:
 python3 -m unittest tests/test_scene_understanding.py
 ```
 
-## Current Limitations
 
-- The app is designed for local use and currently runs on Python's built-in WSGI server
-- Active job progress is stored in memory, so in-flight job state is lost if the server restarts
-- Generated media is stored on local disk instead of cloud storage
-- No OAuth or third-party identity integration yet
-- Processing speed depends heavily on local hardware and model availability
-- The Gradio prototype is legacy and separate from the main web UI
 
 ## Why This Project Matters
 
@@ -315,19 +308,7 @@ Manual highlight extraction takes time, especially when the input video is long 
 - rough-cut highlight extraction before manual editing
 - experimenting with local AI-assisted media tooling
 
-## Possible Next Steps
 
-- cloud storage for uploads and generated clips
-- OAuth or external identity providers
-- better scene labeling and richer scoring signals
-- batch processing for multiple source videos
-- containerized or production deployment workflows
-- search, filters, and lifecycle management for saved clips
-
-## Author
-
-Mudit Agrawal  
-B.Tech CSE (AI/ML)
 
 ## License
 
