@@ -1,60 +1,88 @@
 {% extends "base.html" %}
-
-{% block title %}Sliver | Profile{% endblock %}
+{% block title %}Sliver — Video Library{% endblock %}
 
 {% block content %}
-<section class="site-shell profile-shell">
-  <div class="profile-heading">
-    <p class="section-script">Profile</p>
-    <h1>{{ user["name"] }}</h1>
-    <p class="lead">{{ user["email"] }}</p>
-  </div>
+<div class="library-page">
+  <div class="library-container">
 
-  <div class="profile-stats">
-    <article class="stat-card">
-      <span>Total clips</span>
-      <strong>{{ stats.total_clips }}</strong>
-    </article>
-    <article class="stat-card">
-      <span>Total runtime</span>
-      <strong>{{ stats.total_runtime }}</strong>
-    </article>
-    <article class="stat-card">
-      <span>Latest export</span>
-      <strong>{{ stats.latest_clip }}</strong>
-    </article>
-  </div>
-</section>
-
-<section class="site-shell profile-library">
-  <div class="library-heading">
-    <div>
-      <p class="section-script">Your outputs</p>
-      <h2>Saved clips and downloads</h2>
+    <!-- Profile & Library Header -->
+    <div class="page-header">
+      <div class="user-identity-block">
+        <div class="user-avatar-large">{{ user["name"][0].upper() }}</div>
+        <div>
+          <h1 class="page-title">{{ user["name"] }}</h1>
+          <p class="page-desc">{{ user["email"] }}</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="/workspace" class="btn btn-primary btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>New summary</span>
+        </a>
+      </div>
     </div>
-    <a class="button button-secondary" href="/workspace">Create New Summary</a>
-  </div>
 
-  {% if clips %}
-    <div class="profile-clip-grid">
-      {% for clip in clips %}
-        <article class="clip-card">
-          <video class="clip-video" controls playsinline src="{{ clip.video_url }}"></video>
-          <div class="clip-meta">
-            <div>
-              <h3>{{ clip.source_name }}</h3>
-              <p>{{ clip.duration_label }} · {{ clip.created_label }}</p>
+    <!-- Stats Summary Row -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="metric-label">Total clips</span>
+        <strong class="metric-value">{{ stats.total_clips }}</strong>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Cumulative runtime</span>
+        <strong class="metric-value">{{ stats.total_runtime }}</strong>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Latest export</span>
+        <strong class="metric-value">{{ stats.latest_clip }}</strong>
+      </div>
+    </div>
+
+    <!-- Library Content Section -->
+    <section class="clips-section">
+      <div class="section-heading-row">
+        <h2 class="section-title-sm">All generated videos</h2>
+        <span class="badge">{{ clips|length }} items</span>
+      </div>
+
+      {% if clips %}
+        <div class="clips-grid">
+          {% for clip in clips %}
+            <div class="clip-card">
+              <div class="clip-video-box">
+                <video controls playsinline preload="metadata" src="{{ clip.video_url }}"></video>
+                <span class="clip-duration-badge">{{ clip.duration_label }}</span>
+              </div>
+              <div class="clip-card-body">
+                <div class="clip-text-meta">
+                  <h3 class="clip-name" title="{{ clip.source_name }}">{{ clip.source_name }}</h3>
+                  <span class="clip-date">{{ clip.created_label }}</span>
+                </div>
+                <div class="clip-actions">
+                  <a href="{{ clip.download_url }}" class="btn btn-secondary btn-sm" download aria-label="Download {{ clip.source_name }}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>Download</span>
+                  </a>
+                </div>
+              </div>
             </div>
-            <a class="button button-primary" href="{{ clip.download_url }}">Download</a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-library-card">
+          <div class="empty-icon-box">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="2" width="20" height="20" rx="4"/>
+              <polygon points="10 8 16 12 10 16 10 8"/>
+            </svg>
           </div>
-        </article>
-      {% endfor %}
-    </div>
-  {% else %}
-    <div class="empty-state">
-      <h3>No output clips yet</h3>
-      <p>Your completed summaries will appear here after you generate them in the workspace.</p>
-    </div>
-  {% endif %}
-</section>
+          <h3 class="empty-card-title">No videos generated yet</h3>
+          <p class="empty-card-desc">When you create summaries in the workspace, your completed clips will be saved here for easy download.</p>
+          <a href="/workspace" class="btn btn-primary btn-sm">Open workspace</a>
+        </div>
+      {% endif %}
+    </section>
+
+  </div>
+</div>
 {% endblock %}

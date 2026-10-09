@@ -1,89 +1,226 @@
 {% extends "base.html" %}
-
-{% block title %}Sliver | Workspace{% endblock %}
+{% block title %}Sliver — Workspace{% endblock %}
 
 {% block content %}
-<section class="site-shell workspace-shell">
-  <div class="workspace-heading">
-    <p class="section-script">Workspace</p>
-    <h1>Upload on the left. Watch the output build on the right.</h1>
-    <p class="lead">
-      Generate one summary at a time, see live progress updates while it renders, and download the finished clip directly from the output panel.
-    </p>
-  </div>
+<div class="workspace-layout">
+  <div class="workspace-container">
 
-  <div class="workspace-two-panel">
-    <section class="paper-panel workspace-column">
-      <div class="panel-heading">
-        <p class="section-script">Source video</p>
-        <h2>Create a new summary</h2>
+    <!-- Page Title Bar -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Workspace</h1>
+        <p class="page-desc">Upload source video footage and generate summarized highlight clips.</p>
+      </div>
+      <div class="header-actions">
+        <a href="/profile" class="btn btn-secondary btn-sm">View library</a>
+      </div>
+    </div>
+
+    <!-- Main Workspace Grid -->
+    <div class="workspace-grid">
+
+      <!-- ===== LEFT PANEL: INPUT & SETTINGS ===== -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Video configuration</h2>
+          <span class="panel-subtitle">Upload source and set parameters</span>
+        </div>
+
+        <form id="workspaceForm" enctype="multipart/form-data" novalidate>
+
+          <!-- Upload Dropzone -->
+          <div class="form-group">
+            <label class="label" for="videoInput">Source video</label>
+            
+            <label id="dropzoneLabel" class="upload-dropzone" for="videoInput">
+              <input id="videoInput" name="video" type="file" accept="video/*">
+              <div class="dropzone-content">
+                <div class="dropzone-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                </div>
+                <div class="dropzone-text">
+                  <span class="dropzone-main-text">Click to upload or drag and drop</span>
+                  <span class="dropzone-sub-text">MP4, MOV, MKV or WebM</span>
+                </div>
+              </div>
+            </label>
+
+            <!-- Video Preview Card -->
+            <div id="previewShell" class="video-preview-card" hidden>
+              <div class="preview-media-box">
+                <video id="videoPreview" controls playsinline></video>
+              </div>
+              <div class="preview-info-row">
+                <div class="preview-file-meta">
+                  <span class="file-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                  </span>
+                  <span id="videoName" class="file-name">Selected video</span>
+                </div>
+                <button type="button" id="removeVideoBtn" class="btn btn-secondary btn-xs">Replace</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Target Duration Settings -->
+          <div class="form-group">
+            <div class="label-row">
+              <label class="label" for="durationInput">Summary length</label>
+              <span id="durationDisplayPill" class="duration-badge">30s</span>
+            </div>
+
+            <!-- Quick Duration Presets -->
+            <div class="preset-buttons" role="group" aria-label="Duration presets">
+              <button type="button" class="preset-btn" data-duration="15">15s</button>
+              <button type="button" class="preset-btn active" data-duration="30">30s</button>
+              <button type="button" class="preset-btn" data-duration="60">60s</button>
+              <button type="button" class="preset-btn" data-duration="90">90s</button>
+              <button type="button" class="preset-btn" data-duration="180">3m</button>
+            </div>
+
+            <div class="slider-row">
+              <input id="durationSlider" class="range-slider" type="range" min="5" max="300" step="5" value="30" aria-label="Duration slider">
+              <div class="input-with-suffix">
+                <input id="durationInput" class="input input-sm number-input" type="number" min="1" max="1800" value="30" required>
+                <span class="suffix">sec</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Semantic Focus (Prompt) -->
+          <div class="form-group">
+            <div class="label-row">
+              <label class="label" for="promptInput">Focus keyword / prompt</label>
+              <span class="label-hint">Optional</span>
+            </div>
+            <input class="input" id="promptInput" name="prompt" type="text" placeholder="e.g. key dialogue, audience reaction, highlights">
+            
+            <div class="tag-row">
+              <span class="tag-label">Suggestions:</span>
+              <button type="button" class="prompt-tag" data-prompt="key dialogue and conversation">Dialogue</button>
+              <button type="button" class="prompt-tag" data-prompt="action scenes and rapid motion">Action</button>
+              <button type="button" class="prompt-tag" data-prompt="facial reactions and expressions">Faces</button>
+              <button type="button" class="prompt-tag" data-prompt="cinematic landscapes and scenery">Scenery</button>
+            </div>
+          </div>
+
+          <!-- Pipeline info box -->
+          <div class="info-card">
+            <div class="info-card-header">
+              <span class="info-title">Models active</span>
+            </div>
+            <div class="model-tags">
+              <span class="badge">YOLO11m</span>
+              <span class="badge">YOLOv8-Face</span>
+              <span class="badge">FFmpeg Audio</span>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="form-actions">
+            <button id="generateButton" class="btn btn-primary btn-block" type="submit">
+              <span class="btn-label">Generate summary</span>
+            </button>
+          </div>
+
+        </form>
       </div>
 
-      <form id="workspaceForm" class="workspace-form" enctype="multipart/form-data">
-        <label class="dropzone" for="videoInput">
-          <input id="videoInput" name="video" type="file" accept="video/*" hidden>
-          <span class="dropzone-label">Drop a video here or click to browse</span>
-          <span class="dropzone-hint">Upload a source video and choose the exact summary length you want.</span>
-        </label>
+      <!-- ===== RIGHT PANEL: OUTPUT & PROGRESS ===== -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Output preview</h2>
+          <span class="panel-subtitle">Real-time status and rendered clip</span>
+        </div>
 
-        <div id="previewShell" class="preview-shell" hidden>
-          <video id="videoPreview" controls playsinline></video>
-          <div class="preview-meta">
-            <strong id="videoName">Selected video</strong>
-            <span>Ready for summarization</span>
+        <!-- Progress Card -->
+        <div id="progressCard" class="progress-box" data-state="{% if latest_clip %}success{% else %}idle{% endif %}">
+          <div class="progress-status-row">
+            <div>
+              <span class="status-label">Job status</span>
+              <p id="progressLabel" class="status-message">
+                {% if latest_clip %}Summary generated successfully.{% else %}Ready for new summary job.{% endif %}
+              </p>
+            </div>
+            <span id="progressPercent" class="status-percentage">{% if latest_clip %}100{% else %}0{% endif %}%</span>
+          </div>
+
+          <div class="progress-bar-track">
+            <div id="progressFill" class="progress-bar-fill" style="width:{% if latest_clip %}100{% else %}0{% endif %}%"></div>
+          </div>
+
+          <!-- Process Pipeline Step Checklist -->
+          <div class="pipeline-checklist">
+            <div class="pipeline-item" id="stage1" data-step-state="{% if latest_clip %}done{% else %}idle{% endif %}">
+              <span class="step-indicator"></span>
+              <span class="step-text">1. Ingestion &amp; frame extraction</span>
+            </div>
+            <div class="pipeline-item" id="stage2" data-step-state="{% if latest_clip %}done{% else %}idle{% endif %}">
+              <span class="step-indicator"></span>
+              <span class="step-text">2. Object &amp; face detection</span>
+            </div>
+            <div class="pipeline-item" id="stage3" data-step-state="{% if latest_clip %}done{% else %}idle{% endif %}">
+              <span class="step-indicator"></span>
+              <span class="step-text">3. Scene scoring &amp; context selection</span>
+            </div>
+            <div class="pipeline-item" id="stage4" data-step-state="{% if latest_clip %}done{% else %}idle{% endif %}">
+              <span class="step-indicator"></span>
+              <span class="step-text">4. Audio synchronization</span>
+            </div>
+            <div class="pipeline-item" id="stage5" data-step-state="{% if latest_clip %}done{% else %}idle{% endif %}">
+              <span class="step-indicator"></span>
+              <span class="step-text">5. Video encoding &amp; export</span>
+            </div>
           </div>
         </div>
 
-        <div class="field-row">
-          <label class="field">
-            <span>Summary length</span>
-            <input id="durationInput" type="number" min="1" value="30" required>
-          </label>
-          <label class="field">
-            <span>Unit</span>
-            <select id="durationUnit">
-              <option value="seconds">Seconds</option>
-              <option value="minutes">Minutes</option>
-            </select>
-          </label>
+        <!-- Output Video Player -->
+        <div class="output-container">
+          
+          <!-- Empty State -->
+          <div id="resultEmpty" class="output-empty-state" {% if latest_clip %}hidden{% endif %}>
+            <div class="empty-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="2" width="20" height="20" rx="4"/>
+                <polygon points="10 8 16 12 10 16 10 8"/>
+              </svg>
+            </div>
+            <h3 class="empty-title">No output yet</h3>
+            <p class="empty-desc">Upload a video and start the generation process to preview the summary here.</p>
+          </div>
+
+          <!-- Result Player Deck -->
+          <div id="resultShell" class="output-result-deck" {% if not latest_clip %}hidden{% endif %}>
+            <div class="player-wrapper">
+              <video id="resultVideo" controls playsinline {% if latest_clip %}src="{{ latest_clip.video_url }}"{% endif %}></video>
+            </div>
+            
+            <div class="result-meta-card">
+              <div class="result-meta-info">
+                <h3 id="resultTitle" class="result-clip-title">
+                  {% if latest_clip %}{{ latest_clip.source_name }}{% else %}Generated summary{% endif %}
+                </h3>
+                <p id="resultDetails" class="result-clip-details">
+                  {% if latest_clip %}{{ latest_clip.duration_label }} &middot; {{ latest_clip.created_label }}{% else %}Ready to download.{% endif %}
+                </p>
+              </div>
+              <a id="resultDownload" class="btn btn-primary" href="{% if latest_clip %}{{ latest_clip.download_url }}{% else %}#{% endif %}" download>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Download MP4</span>
+              </a>
+            </div>
+          </div>
+
         </div>
 
-        <button id="generateButton" class="button button-primary wide-button" type="submit">Generate Summary</button>
-      </form>
-    </section>
-
-    <aside class="paper-panel workspace-column output-column">
-      <div class="panel-heading">
-        <p class="section-script">Output</p>
-        <h2>Current summary</h2>
       </div>
 
-      <div id="progressCard" class="progress-card" data-state="{% if latest_clip %}success{% else %}idle{% endif %}">
-        <div class="progress-copy">
-          <span id="progressLabel">{% if latest_clip %}Latest summary ready to download.{% else %}Waiting for a new summary job.{% endif %}</span>
-          <strong id="progressPercent">{% if latest_clip %}100%{% else %}0%{% endif %}</strong>
-        </div>
-        <div class="progress-track" aria-hidden="true">
-          <div id="progressFill" class="progress-fill" style="width: {% if latest_clip %}100{% else %}0{% endif %}%"></div>
-        </div>
-      </div>
+    </div><!-- /workspace-grid -->
 
-      <div id="resultEmpty" class="output-empty" {% if latest_clip %}hidden{% endif %}>
-        <h3>No summary yet</h3>
-        <p>The finished video will appear here as soon as the generation job completes.</p>
-      </div>
-
-      <div id="resultShell" class="output-shell" {% if not latest_clip %}hidden{% endif %}>
-        <video id="resultVideo" class="output-video" controls playsinline {% if latest_clip %}src="{{ latest_clip.video_url }}"{% endif %}></video>
-        <div class="output-meta">
-          <h3 id="resultTitle">{% if latest_clip %}{{ latest_clip.source_name }}{% else %}Generated summary{% endif %}</h3>
-          <p id="resultDetails">{% if latest_clip %}{{ latest_clip.duration_label }} · {{ latest_clip.created_label }}{% else %}Your finished output will show here.{% endif %}</p>
-        </div>
-        <a id="resultDownload" class="button button-primary output-download {% if not latest_clip %}is-hidden{% endif %}" href="{% if latest_clip %}{{ latest_clip.download_url }}{% else %}#{% endif %}">
-          Download Clip
-        </a>
-      </div>
-    </aside>
   </div>
-</section>
+</div>
 {% endblock %}

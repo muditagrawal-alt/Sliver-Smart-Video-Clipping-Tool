@@ -3,51 +3,86 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Sliver{% endblock %}</title>
+  <title>{% block title %}Sliver — Video Summarization{% endblock %}</title>
+  <meta name="description" content="Local AI video summarization tool. Turn hours of raw footage into audio-synced highlight clips.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bevan:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Yesteryear&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/site.css">
 </head>
-<body class="{{ body_class|default('') }}" data-auth-mode="{{ auth_mode|default('login') }}">
-  <header class="site-shell site-header">
-    <div class="header-band">
-      <a class="brand-lockup" href="/">
-        <span class="brand-mark"></span>
-        <span class="brand-copy">
-          <strong>Sliver</strong>
-          <em>smart video summaries</em>
-        </span>
+<body data-auth-mode="{{ auth_mode|default('login') }}">
+<div class="app-layout">
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="app-navbar">
+    <div class="nav-container">
+      
+      <!-- Brand -->
+      <a href="/" class="nav-brand" aria-label="Sliver Home">
+        <div class="brand-logo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+        </div>
+        <span class="brand-title">Sliver</span>
       </a>
 
-      <nav class="nav-links" aria-label="Primary">
-        <a class="nav-link {% if request_path == '/' %}active{% endif %}" href="/">Home</a>
-        <a class="nav-link {% if request_path.startswith('/workspace') %}active{% endif %}" href="/workspace">Workspace</a>
+      <!-- Navigation links -->
+      <nav class="nav-menu" aria-label="Main Navigation">
+        <a href="/" class="nav-item {% if request_path == '/' %}active{% endif %}">Overview</a>
+        <a href="/workspace" class="nav-item {% if request_path.startswith('/workspace') %}active{% endif %}">Workspace</a>
         {% if user %}
-          <a class="nav-link {% if request_path.startswith('/profile') %}active{% endif %}" href="/profile">Profile</a>
-          <span class="nav-greeting">{{ user["name"].split(" ")[0] }}</span>
-          <form class="inline-form" action="/auth/logout" method="post">
-            <button class="button button-ghost" type="submit">Log out</button>
-          </form>
-        {% else %}
-          <a class="button button-secondary" href="/auth?mode=login">Log in</a>
-          <a class="button button-primary" href="/auth?mode=signup">Sign up</a>
+          <a href="/profile" class="nav-item {% if request_path.startswith('/profile') %}active{% endif %}">Library</a>
         {% endif %}
       </nav>
+
+      <!-- Right Actions -->
+      <div class="nav-actions">
+        <!-- Status indicator -->
+        <div class="engine-badge" title="Local Pipeline Active">
+          <span class="badge-dot"></span>
+          <span>Engine ready</span>
+        </div>
+
+        {% if user %}
+          <div class="user-menu">
+            <a href="/profile" class="user-pill" title="View profile">
+              <span class="user-avatar">{{ user["name"][0].upper() }}</span>
+              <span class="user-name">{{ user["name"].split(" ")[0] }}</span>
+            </a>
+            <form action="/auth/logout" method="post" style="display:inline; margin:0;">
+              <button class="btn btn-secondary btn-sm" type="submit">Sign out</button>
+            </form>
+          </div>
+        {% else %}
+          <a href="/auth?mode=login" class="nav-link-btn">Sign in</a>
+          <a href="/auth?mode=signup" class="btn btn-primary btn-sm">Get started</a>
+        {% endif %}
+      </div>
+
     </div>
   </header>
 
-  <main>
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="app-main">
     {% block content %}{% endblock %}
   </main>
 
-  <footer class="site-shell site-footer">
-    <div class="footer-band">
-      <p>Sliver summarizes long videos into shorter, more watchable recaps while keeping the moments understandable.</p>
-      <span>© {{ site_year }} Sliver</span>
+  <!-- ===== FOOTER ===== -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <span class="footer-brand">Sliver</span>
+        <span class="footer-desc">&middot; Local video summarization tool running on your hardware.</span>
+      </div>
+      <div class="footer-right">
+        <span>YOLO11m &middot; YOLOv8-Face &middot; FFmpeg</span>
+        <span class="footer-copy">&copy; {{ site_year }} Sliver</span>
+      </div>
     </div>
   </footer>
 
-  <script src="/static/site.js" defer></script>
+</div>
+<script src="/static/site.js" defer></script>
 </body>
 </html>

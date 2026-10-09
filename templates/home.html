@@ -1,99 +1,170 @@
 {% extends "base.html" %}
-
-{% block title %}Sliver | AI Video Summaries{% endblock %}
+{% block title %}Sliver — Video Summarization Tool{% endblock %}
 
 {% block content %}
-<section class="home-hero">
-  <div class="site-shell hero-center">
-    <p class="hero-script">Greetings from</p>
-    <div class="hero-word" aria-label="Sliver">
-      <span>S</span>
-      <span>L</span>
-      <span>I</span>
-      <span>V</span>
-      <span>E</span>
-      <span>R</span>
+
+<!-- ===== HERO SECTION ===== -->
+<section class="hero-section">
+  <div class="hero-container">
+    
+    <div class="announcement-pill">
+      <span class="badge">New</span>
+      <span class="pill-text">Local vision pipeline with YOLO11m &amp; YOLOv8-Face</span>
     </div>
-    <p class="hero-caption">AI VIDEO SUMMARIES</p>
-    <p class="hero-copy">
-      Sliver turns long footage into shorter, cleaner recaps for YouTube videos, podcasts, music videos,
-      reels, interviews, lectures, and films. It is built to keep the key moments and more of the meaning.
+
+    <h1 class="hero-title">Turn long-form video into high-impact highlights</h1>
+
+    <p class="hero-desc">
+      Sliver analyzes human action, facial expressions, and scene motion to extract meaningful recap clips with synchronized original audio. Runs 100% locally on your machine.
     </p>
-    <div class="hero-actions">
-      <a class="button button-primary" href="{{ workspace_href }}">Start Summarizing</a>
-      <a class="button button-secondary" href="/auth?mode=signup">Create Account</a>
+
+    <div class="hero-cta-group">
+      <a href="{{ workspace_href }}" class="btn btn-primary btn-lg">Start summarizing</a>
+      <a href="#demo" class="btn btn-secondary btn-lg">View demo</a>
     </div>
-    <ul class="hero-format-strip">
-      <li>YouTube</li>
-      <li>Podcasts</li>
-      <li>Music Videos</li>
-      <li>Movies</li>
-      <li>Reels</li>
-    </ul>
-    <p class="hero-scroll-note">Scroll to see how Sliver works</p>
+
+    <!-- Supported specs pill -->
+    <div class="hero-specs-row">
+      <span class="spec-item">MP4, MOV, MKV &middot; H.264 &middot; AAC Stereo &middot; 100% Local</span>
+    </div>
+
   </div>
 </section>
 
-<section class="site-shell flow-section">
-  <div class="section-intro">
-    <p class="section-script">Why Sliver</p>
-    <h2>A SaaS homepage with one promise: shorter videos that still make sense.</h2>
-  </div>
+<!-- ===== INTERACTIVE DEMO SHOWCASE ===== -->
+<section id="demo" class="demo-section">
+  <div class="demo-container">
 
-  <div class="feature-runway">
-    <article class="feature-row">
-      <span class="feature-index">01</span>
-      <div>
-        <h3>Context-first summaries</h3>
-        <p>Sliver does not just grab random peaks. It groups important moments with enough local context so the final output still feels watchable.</p>
+    <div class="section-header">
+      <h2 class="section-title">See the pipeline in action</h2>
+      <p class="section-desc">Compare raw 4-minute master footage with the 30-second context-preserved highlight clip.</p>
+    </div>
+
+    <div class="demo-comparison-grid">
+      
+      <!-- Source Video Card -->
+      <div class="demo-card">
+        <div class="demo-card-header">
+          <div class="demo-label-group">
+            <span class="demo-tag">Input</span>
+            <span class="demo-filename">Sample source footage</span>
+          </div>
+          <span class="demo-meta">4m 23s &middot; 1080p</span>
+        </div>
+        <div class="demo-player-box">
+          <video controls playsinline preload="metadata" poster="/assets/screenshots/workspace.png">
+            <source src="/assets/demo/input.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="demo-card-footer">
+          <p>Continuous uncut recording with dialogue and camera motion.</p>
+        </div>
       </div>
-    </article>
-    <article class="feature-row">
-      <span class="feature-index">02</span>
-      <div>
-        <h3>Works across video types</h3>
-        <p>Whether the input is a talking-head podcast, a cinematic film scene, or a music video, the workspace is designed to make the summary flow cleaner.</p>
+
+      <!-- Arrow Indicator -->
+      <div class="demo-divider">
+        <span class="divider-badge">-88% length</span>
       </div>
-    </article>
-    <article class="feature-row">
-      <span class="feature-index">03</span>
-      <div>
-        <h3>From upload to export in one flow</h3>
-        <p>Upload your footage, choose the desired duration, watch the generation progress, then download the finished summary or find it later in your profile.</p>
+
+      <!-- Output Video Card -->
+      <div class="demo-card demo-card-active">
+        <div class="demo-card-header">
+          <div class="demo-label-group">
+            <span class="demo-tag tag-primary">Output</span>
+            <span class="demo-filename">Generated highlight clip</span>
+          </div>
+          <span class="demo-meta">30s &middot; Synced audio</span>
+        </div>
+        <div class="demo-player-box">
+          <video controls playsinline preload="metadata" poster="/assets/screenshots/profile.png">
+            <source src="/assets/demo/output.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="demo-card-footer">
+          <p>Preserves key facial reactions and scenes with natural transitions.</p>
+        </div>
       </div>
-    </article>
+
+    </div>
+
   </div>
 </section>
 
-<section class="site-shell flow-section">
-  <div class="section-intro">
-    <p class="section-script">How it flows</p>
-    <h2>Three quick steps from raw footage to a finished recap.</h2>
-  </div>
+<!-- ===== FEATURES GRID ===== -->
+<section class="features-section">
+  <div class="features-container">
 
-  <div class="story-steps">
-    <div class="story-step">
-      <span>Upload</span>
-      <p>Choose a video and tell Sliver how long the summary should be.</p>
+    <div class="section-header">
+      <h2 class="section-title">Built for speed, accuracy, and privacy</h2>
+      <p class="section-desc">Designed to replace tedious manual timeline scrubbing with automated vision scoring.</p>
     </div>
-    <div class="story-step">
-      <span>Generate</span>
-      <p>Track the job in real time as the engine analyzes scenes, renders the clip, and merges audio.</p>
+
+    <div class="features-grid">
+      
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h3 class="feature-title">Local &amp; private</h3>
+        <p class="feature-desc">Video processing executes on your device via PyTorch and OpenCV. Your media never uploads to external servers.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+        </div>
+        <h3 class="feature-title">Context-aware cuts</h3>
+        <p class="feature-desc">Clustering preserves the moments before and after high-salience scenes, ensuring highlights remain watchable without jarring edits.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </div>
+        <h3 class="feature-title">Sample-accurate audio</h3>
+        <p class="feature-desc">FFmpeg trims and concatenates the original audio streams without re-encoding degradation, keeping sound tightly locked to video.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+        </div>
+        <h3 class="feature-title">Face and actor tracking</h3>
+        <p class="feature-desc">Runs YOLO11m for human detection and YOLOv8-Face for facial salience, prioritizing moments with clear human interaction.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <h3 class="feature-title">Flexible duration targets</h3>
+        <p class="feature-desc">Generate 15-second social teasers or multi-minute comprehensive reviews with granular slider and second-by-second controls.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <h3 class="feature-title">Semantic guidance (CLIP)</h3>
+        <p class="feature-desc">Provide optional keywords to bias scene scoring toward specific visual actions, spoken topics, or scenery.</p>
+      </div>
+
     </div>
-    <div class="story-step">
-      <span>Keep</span>
-      <p>Download the current output right away and revisit every completed summary from your profile library.</p>
+
+  </div>
+</section>
+
+<!-- ===== BOTTOM CTA ===== -->
+<section class="cta-section">
+  <div class="cta-container">
+    <div class="cta-card">
+      <h2 class="cta-title">Start summarizing video files locally</h2>
+      <p class="cta-desc">Open the workspace to upload a video and generate your first highlight recap in minutes.</p>
+      <div class="cta-actions">
+        <a href="{{ workspace_href }}" class="btn btn-primary btn-lg">Open workspace</a>
+      </div>
     </div>
   </div>
 </section>
 
-<section class="site-shell flow-section closing-section">
-  <p class="section-script">Ready to launch</p>
-  <h2 class="closing-title">Centered on the brand. Focused on the summary.</h2>
-  <p class="closing-copy">
-    The site keeps the postcard-inspired typography and colors, but the product flow is now more SaaS-like:
-    landing page, authentication, a clean workspace, and a dedicated profile with saved outputs.
-  </p>
-  <a class="button button-primary" href="{{ workspace_href }}">Open Workspace</a>
-</section>
 {% endblock %}

@@ -1,76 +1,79 @@
 {% extends "base.html" %}
-
-{% block title %}Sliver | Login and Sign Up{% endblock %}
+{% block title %}Sliver — Sign in{% endblock %}
 
 {% block content %}
-<section class="site-shell auth-shell">
-  <div class="auth-layout">
-    <aside class="postcard-panel auth-poster">
-      <p class="postcard-script">Welcome to</p>
-      <div class="postcard-word small" aria-label="Sliver">
-        <span>S</span>
-        <span>L</span>
-        <span>I</span>
-        <span>V</span>
-        <span>E</span>
-        <span>R</span>
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <div class="auth-header">
+      <div class="auth-logo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
       </div>
-      <p class="postcard-caption">LOGIN FOR YOUR NEXT RECAP</p>
-      <ul class="poster-bullets">
-        <li>Upload long-form source videos</li>
-        <li>Choose the exact summary duration</li>
-        <li>Keep every exported clip in one workspace</li>
-      </ul>
-    </aside>
+      <h1 class="auth-title">Welcome to Sliver</h1>
+      <p class="auth-sub">Sign in to your local workspace or create an account</p>
+    </div>
 
-    <section class="paper-panel auth-card">
-      <div class="section-heading compact">
-        <p class="section-script">Front desk</p>
-        <h1>Sign in or create your account.</h1>
+    <!-- Feedback messages -->
+    {% if auth_error %}
+      <div class="alert alert-error" role="alert">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>{{ auth_error }}</span>
+      </div>
+    {% endif %}
+    {% if auth_notice %}
+      <div class="alert alert-info" role="status">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>{{ auth_notice }}</span>
+      </div>
+    {% endif %}
+
+    <!-- Segmented tabs -->
+    <div class="segmented-control" role="tablist">
+      <button class="segment-btn active" data-auth-target="login" type="button" role="tab">Sign in</button>
+      <button class="segment-btn" data-auth-target="signup" type="button" role="tab">Sign up</button>
+    </div>
+
+    <!-- Login Form -->
+    <form class="auth-form" id="loginPanel" action="/auth/login" method="post">
+      <div class="form-field">
+        <label class="form-label" for="login-email">Email address</label>
+        <input class="form-input" id="login-email" type="email" name="email" placeholder="you@example.com" required autocomplete="email">
       </div>
 
-      {% if auth_error %}
-        <div class="flash flash-error">{{ auth_error }}</div>
-      {% endif %}
-      {% if auth_notice %}
-        <div class="flash flash-notice">{{ auth_notice }}</div>
-      {% endif %}
-
-      <div class="auth-tabs" role="tablist" aria-label="Authentication tabs">
-        <button class="auth-tab" data-auth-target="login" type="button">Log in</button>
-        <button class="auth-tab" data-auth-target="signup" type="button">Sign up</button>
+      <div class="form-field">
+        <label class="form-label" for="login-password">Password</label>
+        <input class="form-input" id="login-password" type="password" name="password" placeholder="••••••••" required autocomplete="current-password">
       </div>
 
-      <div class="auth-panels">
-        <form class="auth-form" id="loginPanel" action="/auth/login" method="post">
-          <label class="field">
-            <span>Email</span>
-            <input type="email" name="email" placeholder="you@example.com" required>
-          </label>
-          <label class="field">
-            <span>Password</span>
-            <input type="password" name="password" placeholder="Enter your password" required>
-          </label>
-          <button class="button button-primary auth-submit" type="submit">Enter Workspace</button>
-        </form>
+      <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+    </form>
 
-        <form class="auth-form" id="signupPanel" action="/auth/signup" method="post">
-          <label class="field">
-            <span>Full name</span>
-            <input type="text" name="name" placeholder="Your full name" required>
-          </label>
-          <label class="field">
-            <span>Email</span>
-            <input type="email" name="email" placeholder="you@example.com" required>
-          </label>
-          <label class="field">
-            <span>Password</span>
-            <input type="password" name="password" placeholder="At least 6 characters" required>
-          </label>
-          <button class="button button-primary auth-submit" type="submit">Create Account</button>
-        </form>
+    <!-- Signup Form -->
+    <form class="auth-form" id="signupPanel" action="/auth/signup" method="post" hidden>
+      <div class="form-field">
+        <label class="form-label" for="signup-name">Full name</label>
+        <input class="form-input" id="signup-name" type="text" name="name" placeholder="Alex Morgan" required autocomplete="name">
       </div>
-    </section>
+
+      <div class="form-field">
+        <label class="form-label" for="signup-email">Email address</label>
+        <input class="form-input" id="signup-email" type="email" name="email" placeholder="you@example.com" required autocomplete="email">
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="signup-password">Password</label>
+        <input class="form-input" id="signup-password" type="password" name="password" placeholder="Minimum 6 characters" required autocomplete="new-password">
+      </div>
+
+      <button class="btn btn-primary btn-block" type="submit">Create account</button>
+    </form>
+
+    <div class="auth-footer-note">
+      <span>Stored securely in local SQLite &middot; 100% offline</span>
+    </div>
+
   </div>
-</section>
+</div>
 {% endblock %}
