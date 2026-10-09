@@ -19,22 +19,18 @@ __pycache__/
 .gradio/
 
 # =========================
-# Media Assets, Screenshots & Audio (DO NOT COMMIT)
+# Bulk Video & Audio Data (DO NOT COMMIT)
 # =========================
-assets/
 videos/
 clips/
 Original Videos/
 Output Clips/
-*.mp4
-*.mp3
-*.gif
-*.aac
-*.mov
-*.mkv
+assets/audio/
+assets/demo/input.mp4
+assets/demo/output.mp4
 
 # =========================
-# Asset Generation & Capture Scripts (DO NOT COMMIT)
+# Asset Generation & Capture Scripts
 # =========================
 scripts/
 

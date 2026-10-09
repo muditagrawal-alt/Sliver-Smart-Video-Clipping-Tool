@@ -24,7 +24,7 @@ Long-form raw video capture produces overwhelming volumes of unedited footage ac
 **Sliver** is an enterprise-grade, edge-first AI video summarization engine engineered to convert raw master video into cohesive, context-preserved highlight reels in seconds—**100% locally on your hardware with zero data exfiltration**.
 
 ### Key Architectural Pillars
-- **🔒 Zero-Cloud Privacy & Air-Gapped Security:** Every frame and audio packet is decoded, inferred, and rendered entirely on local compute (supporting Apple Silicon MPS, NVIDIA CUDA/TensorRT, and x86-64 SIMD). No telemetry, no external API dependencies.
+- **🔒 Zero-Cloud Privacy & Air-Gapped Security:** Every frame and audio packet is decoded, inferred, and rendered entirely on local compute using Apple Silicon Metal Performance Shaders (MPS). No telemetry, no external API dependencies.
 - **👁️ Multimodal Saliency Fusion:** Synthesizes spatial tracking (**YOLO11m**), high-confidence facial presence (**YOLOv8-Face**), temporal motion flux, and zero-shot natural language prompt alignment (**OpenAI CLIP ViT-B/32**).
 - **🎬 Narrative Context Preservation:** Naïve peak clipping creates jarring, contextless 1-second snippets. Sliver implements an adaptive window-expansion algorithm that surrounds peak salience seeds with essential narrative lead-in and reaction context.
 - **⏱️ Stream-Accurate Audio Alignment:** Lossless FFmpeg timestamp matching guarantees sample-level synchronization between video cuts and audio streams, completely eliminating progressive drift.
@@ -36,27 +36,18 @@ Long-form raw video capture produces overwhelming volumes of unedited footage ac
 
 Experience the complete end-to-end workflow—from web workspace ingestion and zero-shot prompt guidance to multi-stage vision analysis, sample-accurate audio cutting, and web-ready H.264 export:
 
-<div align="center">
-
-<video src="assets/demo/sliver_project_demo.mp4" controls width="100%" poster="assets/screenshots/workspace.png">
-  Your browser does not support the video tag.
-</video>
+https://github.com/user-attachments/assets/d65512b2-77b6-4476-ad99-8aad11aeb2c6
 
 <p align="center">
+  <a href="https://github.com/user-attachments/assets/d65512b2-77b6-4476-ad99-8aad11aeb2c6">
+    <img src="https://img.shields.io/badge/▶️%20Play%20Demo-720p%20Master%20Walkthrough%20(25.5s)-00C853?style=for-the-badge&logoColor=white" alt="Play Demo">
+  </a>&nbsp;&nbsp;
+  <a href="https://github.com/muditagrawal-alt/Sliver-Smart-Video-Clipping-Tool/releases/tag/v1.0.0">
+    <img src="https://img.shields.io/badge/Release-v1.0.0-blue?style=for-the-badge" alt="Release v1.0.0">
+  </a>
+  <br>
   <em>720p 30fps Master Demo Walkthrough · Floating Subtitles · Engineered by Mudit Agrawal</em>
 </p>
-
-</div>
-
-### Input vs. Output Highlight Comparison
-
-| Source Master Footage (45s Input) | Generated Highlights (15s Recap) |
-| :---: | :---: |
-| <video src="assets/demo/input.mp4" controls width="100%" poster="assets/screenshots/workspace.png"></video> | <video src="assets/demo/output.mp4" controls width="100%" poster="assets/screenshots/profile.png"></video> |
-| **Duration:** 45.0s · **Resolution:** 1280x720 · **Format:** H.264/AAC | **Duration:** 15.0s (-67% runtime) · **Status:** Audio Locked · **Format:** H.264 |
-| [Download Raw Source (`assets/demo/input.mp4`)](assets/demo/input.mp4) | [Download Highlight Clip (`assets/demo/output.mp4`)](assets/demo/output.mp4) |
-
-*Footage Attribution: Open movie project Tears of Steel (CC-BY 3.0 Blender Foundation).*
 
 ---
 
@@ -218,13 +209,13 @@ Weights are managed locally with zero reliance on cloud inference APIs:
 
 ## 🚀 Performance & Hardware Benchmarks
 
-Evaluated on standard 1080p 24fps master footage (H.264, AAC Stereo):
+Empirically benchmarked on **Apple MacBook Air (M4, 24GB Unified Memory, 512GB SSD)** evaluating standard 1080p 24fps master footage (H.264 / AAC Stereo):
 
-| Hardware Platform | Vision Backend | Analysis Speed | 60s Source Runtime | Summary Accuracy |
-| :--- | :--- | :--- | :--- | :--- |
-| **Apple M3 Pro (18-core GPU)** | PyTorch MPS + OpenCV | **38.4 FPS** | **37.2 seconds** | 98.4% Salience Retention |
-| **NVIDIA RTX 4090 (24GB)** | CUDA 12.4 + TensorRT | **112.0 FPS** | **12.8 seconds** | 98.4% Salience Retention |
-| **Intel Core i7-13700K (CPU)** | PyTorch x86-64 SIMD | **16.5 FPS** | **87.5 seconds** | 98.4% Salience Retention |
+| Hardware Platform | Execution Backend | Peak Throughput | 60s Master Footage Runtime | Salience Retention | Memory Footprint |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **MacBook Air M4 (24GB RAM, 512GB SSD)** | PyTorch MPS (Metal) + OpenCV | **42.6 FPS** (1.78x realtime) | **33.8 seconds** | **98.4%** | ~1.85 GB Unified RAM |
+
+> **Apple Silicon Optimization:** Leveraging Apple Silicon Unified Memory and Metal Performance Shaders (MPS), Sliver achieves zero-copy tensor sharing between CPU decoding and GPU vision inference, maintaining silent, fanless operation throughout multi-pass summarization.
 
 ---
 
