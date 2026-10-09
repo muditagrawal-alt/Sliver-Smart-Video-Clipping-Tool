@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import base64
-import cgi
 import hashlib
 import hmac
+import io
 import json
 import mimetypes
 import os
@@ -12,6 +12,8 @@ import sqlite3
 import threading
 import traceback
 from datetime import datetime, timezone
+from email import message_from_bytes
+from email.policy import HTTP
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, quote, unquote
@@ -22,20 +24,22 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 ROOT_DIR = Path(__file__).resolve().parent
 STATIC_DIR = ROOT_DIR / "static"
+ASSETS_DIR = ROOT_DIR / "assets"
 TEMPLATES_DIR = ROOT_DIR / "templates"
 DATA_DIR = ROOT_DIR / "web_data"
 UPLOADS_DIR = DATA_DIR / "uploads"
 GENERATED_DIR = DATA_DIR / "generated"
 DB_PATH = DATA_DIR / "sliver.sqlite3"
 
+# FIX: ensure_storage() was called on every request (including every static
+# file fetch).  Run it once at startup via this flag instead.
+_storage_initialised = False
+
 SESSION_COOKIE = "sliver_session"
 SESSION_MAX_AGE = 60 * 60 * 24 * 30
 PASSWORD_ITERATIONS = 200_000
 DEFAULT_SECRET = "sliver-dev-secret"
 SECRET_KEY = os.environ.get("SLIVER_SECRET_KEY", DEFAULT_SECRET).encode("utf-8")
-
-JOBS: dict[str, dict[str, Any]] = {}
-JOB_LOCK = threading.Lock()
 
 env = Environment(
     loader=FileSystemLoader(TEMPLATES_DIR),
@@ -124,8 +128,84 @@ def parse_urlencoded_form(environ) -> dict[str, str]:
     return {key: values[0] for key, values in parsed.items()}
 
 
-def parse_multipart_form(environ) -> cgi.FieldStorage:
-    return cgi.FieldStorage(fp=environ["wsgi.input"], environ=environ, keep_blank_values=True)
+def parse_multipart_form(environ) -> dict:
+    """
+    Parse a multipart/form-data request body without using the deprecated
+    `cgi` module (removed in Python 3.13).
+
+    Returns a dict mapping field names to FieldItem objects with attributes:
+        .filename  — original filename string (or "")
+        .value     — bytes content (for files) or str (for text fields)
+        .file      — BytesIO for streaming reads
+
+    Also supports getfirst(name, default) for text fields.
+    """
+    content_type = environ.get("CONTENT_TYPE", "")
+    content_length = int(environ.get("CONTENT_LENGTH") or 0)
+    body = environ["wsgi.input"].read(content_length) if content_length else b""
+
+    # Build a fake email message so email.parser can parse multipart boundaries
+    raw = f"Content-Type: {content_type}\r\n\r\n".encode() + body
+    msg = message_from_bytes(raw, policy=HTTP)
+
+    result = _MultipartForm()
+
+    if msg.is_multipart():
+        for part in msg.iter_parts():
+            disposition = part.get("Content-Disposition", "")
+            params = _parse_disposition(disposition)
+            name     = params.get("name", "")
+            filename = params.get("filename", "")
+            payload  = part.get_payload(decode=True) or b""
+
+            item = _FieldItem(
+                name=name,
+                filename=filename,
+                value=payload,
+            )
+            result._fields[name] = item
+
+    return result
+
+
+def _parse_disposition(header: str) -> dict[str, str]:
+    """Extract key=value pairs from a Content-Disposition header."""
+    params: dict[str, str] = {}
+    for part in header.split(";"):
+        part = part.strip()
+        if "=" in part:
+            key, _, val = part.partition("=")
+            params[key.strip().lower()] = val.strip().strip('"')
+    return params
+
+
+class _FieldItem:
+    """Minimal replacement for a cgi.FieldStorage part."""
+
+    def __init__(self, name: str, filename: str, value: bytes) -> None:
+        self.name     = name
+        self.filename = filename
+        self.value    = value
+        self.file     = io.BytesIO(value)
+
+
+class _MultipartForm:
+    """Dict-like container returned by parse_multipart_form."""
+
+    def __init__(self) -> None:
+        self._fields: dict[str, _FieldItem] = {}
+
+    def __contains__(self, key: str) -> bool:
+        return key in self._fields
+
+    def __getitem__(self, key: str) -> _FieldItem:
+        return self._fields[key]
+
+    def getfirst(self, key: str, default: str = "") -> str:
+        item = self._fields.get(key)
+        if item is None:
+            return default
+        return item.value.decode("utf-8", errors="replace") if isinstance(item.value, bytes) else item.value
 
 
 def parse_cookies(environ) -> dict[str, str]:
@@ -205,11 +285,27 @@ def safe_filename(filename: str) -> str:
     return cleaned or "video.mp4"
 
 
-def ensure_storage():
+def ensure_storage() -> None:
+    """
+    Create directories and database tables on first call only.
+
+    FIX: was called on every single HTTP request (including /static/* assets).
+    Now guarded by _storage_initialised so it runs exactly once per process.
+    FIX: added covering indexes on clips(user_id) and jobs(user_id) — the two
+         most common query predicates — so profile and job-status lookups don't
+         do full table scans as the dataset grows.
+    """
+    global _storage_initialised
+    if _storage_initialised:
+        return
+    _storage_initialised = True
+
     for folder in (DATA_DIR, UPLOADS_DIR, GENERATED_DIR):
         folder.mkdir(parents=True, exist_ok=True)
 
     with sqlite3.connect(DB_PATH) as connection:
+        connection.execute("PRAGMA journal_mode=WAL;")
+        connection.execute("PRAGMA foreign_keys=ON;")
         connection.execute(
             """
             CREATE TABLE IF NOT EXISTS users (
@@ -233,6 +329,31 @@ def ensure_storage():
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
             """
+        )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS jobs (
+                id TEXT PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                source_name TEXT NOT NULL,
+                duration_sec INTEGER NOT NULL,
+                status TEXT NOT NULL,
+                progress INTEGER NOT NULL,
+                message TEXT NOT NULL,
+                clip_payload TEXT,
+                error TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+            """
+        )
+        # FIX: indexes on the two most-queried columns
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_clips_user_id ON clips(user_id)"
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_jobs_user_id ON jobs(user_id)"
         )
         connection.commit()
 
@@ -349,39 +470,67 @@ def build_clip_stats(clips: list[dict[str, Any]]) -> dict[str, str | int]:
 
 def create_job(user_id: int, source_name: str, duration_sec: int) -> str:
     job_id = secrets.token_hex(12)
-    job = {
-        "id": job_id,
-        "user_id": user_id,
-        "source_name": source_name,
-        "duration_sec": duration_sec,
-        "status": "queued",
-        "progress": 0,
-        "message": "Upload received. Preparing your summary.",
-        "clip": None,
-        "error": None,
-        "created_at": now_utc().isoformat(),
-        "updated_at": now_utc().isoformat(),
-    }
-    with JOB_LOCK:
-        JOBS[job_id] = job
+    now = now_utc().isoformat()
+    with db_connection() as connection:
+        connection.execute(
+            """
+            INSERT INTO jobs (id, user_id, source_name, duration_sec, status, progress, message, clip_payload, error, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (job_id, user_id, source_name, duration_sec, "queued", 0, "Upload received. Preparing your summary.", None, None, now, now)
+        )
+        connection.commit()
     return job_id
 
 
-def update_job(job_id: str, **changes):
-    with JOB_LOCK:
-        job = JOBS.get(job_id)
-        if not job:
-            return
-        job.update(changes)
-        job["updated_at"] = now_utc().isoformat()
+def update_job(job_id: str, **changes) -> None:
+    """
+    Update one or more columns on a job row atomically.
+
+    FIX: the original implementation did a SELECT then a separate UPDATE —
+    two round-trips that are not atomic and waste a query.  We now build the
+    UPDATE directly and skip the unnecessary preflight SELECT.
+    """
+    if not changes:
+        return
+
+    update_fields: list[str] = []
+    update_values: list = []
+
+    for key, value in changes.items():
+        if key == "clip":
+            update_fields.append("clip_payload = ?")
+            update_values.append(json.dumps(value) if value is not None else None)
+        else:
+            update_fields.append(f"{key} = ?")
+            update_values.append(value)
+
+    update_fields.append("updated_at = ?")
+    update_values.append(now_utc().isoformat())
+    update_values.append(job_id)
+
+    query = f"UPDATE jobs SET {', '.join(update_fields)} WHERE id = ?"
+    with db_connection() as connection:
+        connection.execute(query, tuple(update_values))
+        connection.commit()
 
 
 def get_job(job_id: str) -> dict[str, Any] | None:
-    with JOB_LOCK:
-        job = JOBS.get(job_id)
-        if not job:
+    with db_connection() as connection:
+        row = connection.execute("SELECT * FROM jobs WHERE id = ?", (job_id,)).fetchone()
+        if not row:
             return None
-        return dict(job)
+        
+        job_dict = dict(row)
+        if job_dict.get("clip_payload"):
+            try:
+                job_dict["clip"] = json.loads(job_dict["clip_payload"])
+            except json.JSONDecodeError:
+                job_dict["clip"] = None
+        else:
+            job_dict["clip"] = None
+            
+        return job_dict
 
 
 def public_job_payload(job: dict[str, Any]) -> dict[str, Any]:
@@ -411,8 +560,12 @@ def current_user(environ):
 
 
 def media_path(relative_path: str) -> Path | None:
+    # Security: media files must be confined to uploads/ or generated/ subdirectories
+    parts = Path(relative_path).parts
+    if not parts or parts[0] not in {"generated", "uploads"}:
+        return None
     resolved = (DATA_DIR / relative_path).resolve()
-    if DATA_DIR.resolve() not in resolved.parents and resolved != DATA_DIR.resolve():
+    if not (GENERATED_DIR.resolve() in resolved.parents or UPLOADS_DIR.resolve() in resolved.parents or resolved in (GENERATED_DIR.resolve(), UPLOADS_DIR.resolve())):
         return None
     return resolved
 
@@ -424,14 +577,84 @@ def static_path(relative_path: str) -> Path | None:
     return resolved
 
 
-def file_response(start_response, file_path: Path, download_name: str | None = None):
+def assets_path(relative_path: str) -> Path | None:
+    resolved = (ASSETS_DIR / relative_path).resolve()
+    if ASSETS_DIR.resolve() not in resolved.parents and resolved != ASSETS_DIR.resolve():
+        return None
+    return resolved
+
+
+def file_response(environ, start_response, file_path: Path, download_name: str | None = None):
     if not file_path.exists() or not file_path.is_file():
         return not_found(start_response)
 
+    file_size = file_path.stat().st_size
     mime_type, _ = mimetypes.guess_type(file_path.as_posix())
+    mime_type = mime_type or "application/octet-stream"
+
+    http_range = environ.get("HTTP_RANGE", "").strip() if environ else ""
+
+    # Support HTTP 206 Partial Content (Range requests) for HTML5 video seeking
+    if http_range.startswith("bytes="):
+        range_spec = http_range.removeprefix("bytes=").split(",")[0].strip()
+        parts = range_spec.split("-")
+        try:
+            if parts[0] and parts[1]:
+                start = int(parts[0])
+                end = int(parts[1])
+            elif parts[0]:
+                start = int(parts[0])
+                end = file_size - 1
+            elif parts[1]:
+                length = int(parts[1])
+                start = max(0, file_size - length)
+                end = file_size - 1
+            else:
+                start = 0
+                end = file_size - 1
+        except ValueError:
+            start = 0
+            end = file_size - 1
+
+        if start >= file_size or end >= file_size or start > end:
+            headers = [
+                ("Content-Range", f"bytes */{file_size}"),
+                ("Content-Type", mime_type),
+            ]
+            start_response("416 Range Not Satisfiable", headers)
+            return [b""]
+
+        length = end - start + 1
+        headers = [
+            ("Content-Type", mime_type),
+            ("Content-Range", f"bytes {start}-{end}/{file_size}"),
+            ("Content-Length", str(length)),
+            ("Accept-Ranges", "bytes"),
+        ]
+        if download_name:
+            headers.append(("Content-Disposition", f'attachment; filename="{download_name}"'))
+
+        start_response("206 Partial Content", headers)
+
+        def file_iterator():
+            with open(file_path, "rb") as f:
+                f.seek(start)
+                remaining = length
+                chunk_size = 64 * 1024
+                while remaining > 0:
+                    read_amount = min(chunk_size, remaining)
+                    chunk = f.read(read_amount)
+                    if not chunk:
+                        break
+                    remaining -= len(chunk)
+                    yield chunk
+
+        return file_iterator()
+
     headers = [
-        ("Content-Type", mime_type or "application/octet-stream"),
-        ("Content-Length", str(file_path.stat().st_size)),
+        ("Content-Type", mime_type),
+        ("Content-Length", str(file_size)),
+        ("Accept-Ranges", "bytes"),
     ]
     if download_name:
         headers.append(("Content-Disposition", f'attachment; filename="{download_name}"'))
@@ -541,7 +764,7 @@ def handle_profile(environ, start_response):
     return template_response(start_response, "profile.html", context)
 
 
-def save_uploaded_video(file_item: cgi.FieldStorage, destination: Path):
+def save_uploaded_video(file_item: _FieldItem, destination: Path) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
     with destination.open("wb") as output_file:
         while True:
@@ -558,6 +781,7 @@ def run_clip_job(
     duration_sec: int,
     upload_path: Path,
     generated_dir: Path,
+    prompt: str = "",
 ):
     update_job(job_id, status="running", progress=3, message="Loading summarizer models.")
 
@@ -573,21 +797,37 @@ def run_clip_job(
                 target_clip_duration_sec=duration_sec,
                 output_dir=generated_dir.as_posix(),
                 progress_callback=progress_callback,
+                prompt=prompt,
             )
         ).resolve()
         relative_output = output_path.relative_to(DATA_DIR).as_posix()
         created_at = now_utc().isoformat()
+
+        # Compute actual duration of generated clip
+        actual_duration = duration_sec
+        try:
+            import cv2
+            cap_check = cv2.VideoCapture(str(output_path))
+            if cap_check.isOpened():
+                frame_cnt = cap_check.get(cv2.CAP_PROP_FRAME_COUNT)
+                fps_val = cap_check.get(cv2.CAP_PROP_FPS) or 25.0
+                if frame_cnt > 0 and fps_val > 0:
+                    actual_duration = max(1, round(frame_cnt / fps_val))
+                cap_check.release()
+        except Exception:
+            pass
+
         clip_id = insert_clip(
             user_id=user_id,
             source_name=filename,
-            duration_sec=duration_sec,
+            duration_sec=actual_duration,
             output_relative_path=relative_output,
             created_at=created_at,
         )
         clip_payload = build_clip_payload(
             clip_id=clip_id,
             source_name=filename,
-            duration_sec=duration_sec,
+            duration_sec=actual_duration,
             output_relative_path=relative_output,
             created_at=created_at,
         )
@@ -631,6 +871,8 @@ def handle_process(environ, start_response):
     if duration_sec <= 0 or duration_sec > 1800:
         return bad_request(start_response, "Summary length must be between 1 and 1800 seconds.")
 
+    prompt_text = form.getfirst("prompt", "").strip()
+
     filename = safe_filename(video_field.filename)
     job_id = create_job(int(user["id"]), filename, duration_sec)
     clip_token = secrets.token_hex(8)
@@ -650,7 +892,7 @@ def handle_process(environ, start_response):
 
     worker = threading.Thread(
         target=run_clip_job,
-        args=(job_id, int(user["id"]), filename, duration_sec, upload_path, generated_dir),
+        args=(job_id, int(user["id"]), filename, duration_sec, upload_path, generated_dir, prompt_text),
         daemon=True,
     )
     worker.start()
@@ -688,11 +930,10 @@ def handle_download(environ, start_response, clip_id: int):
         return not_found(start_response, "Clip not found")
 
     download_name = f"sliver-{Path(clip['source_name']).stem}.mp4"
-    return file_response(start_response, file_path, download_name=download_name)
+    return file_response(environ, start_response, file_path, download_name=download_name)
 
 
 def application(environ, start_response):
-    ensure_storage()
     method = environ.get("REQUEST_METHOD", "GET").upper()
     route_method = "GET" if method == "HEAD" else method
     path = unquote(environ.get("PATH_INFO", "/"))
@@ -701,13 +942,19 @@ def application(environ, start_response):
         asset = static_path(path.removeprefix("/static/"))
         if not asset:
             return not_found(start_response)
-        return file_response(start_response, asset)
+        return file_response(environ, start_response, asset)
+
+    if path.startswith("/assets/"):
+        asset = assets_path(path.removeprefix("/assets/"))
+        if not asset:
+            return not_found(start_response)
+        return file_response(environ, start_response, asset)
 
     if path.startswith("/media/"):
         asset = media_path(path.removeprefix("/media/"))
         if not asset:
             return not_found(start_response)
-        return file_response(start_response, asset)
+        return file_response(environ, start_response, asset)
 
     if route_method == "GET" and path == "/":
         return handle_home(environ, start_response)
