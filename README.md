@@ -17,23 +17,34 @@
 
 </div>
 
-## 📌 Executive Summary
+## 📌 About Sliver: Next-Generation Video Intelligence
 
-Modern long-form video capture generates petabytes of uncut footage daily—ranging from conference recordings, surveillance feeds, and live sports to cinema rushes and vlogs. Manually scrubbing timelines to curate cohesive recaps is labor-intensive, error-prone, and slow.
+Long-form raw video capture produces overwhelming volumes of unedited footage across enterprise events, academic lectures, surveillance feeds, podcasts, and cinematography. Traditional automated clipping systems either apply crude fixed-interval downsampling or rely on costly, cloud-tethered APIs that compromise data confidentiality and introduce latency.
 
-**Sliver** is a standalone, 100% private video intelligence platform designed to transform raw master footage into high-salience, narrative-preserved highlight reels in seconds. By coupling state-of-the-art vision models (**YOLO11m**, **YOLOv8-Face**, and **OpenAI CLIP**) with a localized context-clustering algorithm, Sliver captures not only isolated climax moments, but the critical narrative buildup and reactions preceding and succeeding them—all without sending a single byte of video to external cloud APIs.
+**Sliver** is an enterprise-grade, edge-first AI video summarization engine engineered to convert raw master video into cohesive, context-preserved highlight reels in seconds—**100% locally on your hardware with zero data exfiltration**.
+
+### Key Architectural Pillars
+- **🔒 Zero-Cloud Privacy & Air-Gapped Security:** Every frame and audio packet is decoded, inferred, and rendered entirely on local compute (supporting Apple Silicon MPS, NVIDIA CUDA/TensorRT, and x86-64 SIMD). No telemetry, no external API dependencies.
+- **👁️ Multimodal Saliency Fusion:** Synthesizes spatial tracking (**YOLO11m**), high-confidence facial presence (**YOLOv8-Face**), temporal motion flux, and zero-shot natural language prompt alignment (**OpenAI CLIP ViT-B/32**).
+- **🎬 Narrative Context Preservation:** Naïve peak clipping creates jarring, contextless 1-second snippets. Sliver implements an adaptive window-expansion algorithm that surrounds peak salience seeds with essential narrative lead-in and reaction context.
+- **⏱️ Stream-Accurate Audio Alignment:** Lossless FFmpeg timestamp matching guarantees sample-level synchronization between video cuts and audio streams, completely eliminating progressive drift.
+- **⚡ Production Web Workspace:** Features a sleek, responsive Obsidian dark-mode UI with live stage progress polling, session authentication, and HTTP 206 range-seeking media delivery.
 
 ---
 
 ## 🎬 End-to-End Video Demonstration
 
-Experience the complete end-to-end workflow—from web workspace ingestion and zero-shot prompt guidance to multi-stage vision analysis, sample-accurate audio cutting, and web-ready H.264 export.
+Experience the complete end-to-end workflow—from web workspace ingestion and zero-shot prompt guidance to multi-stage vision analysis, sample-accurate audio cutting, and web-ready H.264 export:
 
 <div align="center">
 
-https://github.com/user-attachments/assets/sliver_project_demo
+<video src="assets/demo/sliver_project_demo.mp4" controls width="100%" poster="assets/screenshots/workspace.png">
+  Your browser does not support the video tag.
+</video>
 
-> **Direct File:** [`assets/demo/sliver_project_demo.mp4`](assets/demo/sliver_project_demo.mp4) (720p 60fps · Floating subtitles · Original stock soundtrack)
+<p align="center">
+  <em>720p 30fps Master Demo Walkthrough · Floating Subtitles · Engineered by Mudit Agrawal</em>
+</p>
 
 </div>
 
@@ -251,16 +262,6 @@ Sliver-Smart-Video-Clipping-Tool/
 ├── app.py                         # WSGI Web Application & Secure Auth Server
 ├── requirements.txt               # Production Python Dependencies
 ├── pytest.ini                     # Automated Test Configuration
-├── assets/
-│   ├── audio/
-│   │   └── stock_music.mp3        # Royalty-free Soundtrack (Kevin MacLeod, CC-BY 4.0)
-│   ├── demo/
-│   │   ├── input.mp4              # 720p Open CC Stock Input Footage (45s)
-│   │   ├── output.mp4             # 720p Generated Highlight Clip (15s)
-│   │   ├── sliver_project_demo.mp4# Master 720p Video Walkthrough with Subtitles
-│   │   ├── architecture.gif       # Pipeline Dataflow Animated Diagram
-│   │   └── quickstart.gif         # Terminal Clone & Launch Animated Guide
-│   └── screenshots/               # High-DPI UI Application Previews
 ├── face_clip/
 │   ├── gradio_ui.py               # Optional Interactive Prototype
 │   ├── models/                    # YOLO11m & YOLOv8-Face Model Weights
@@ -279,18 +280,6 @@ Sliver-Smart-Video-Clipping-Tool/
 ├── templates/                     # Production Jinja2 Server-Rendered Views
 └── tests/                         # Pytest Regression & Boundary Test Suite
 ```
-
----
-
-## ⚖️ Legal & Copyright Compliance Notice
-
-### Can You Distribute Downloaded Anime & Commercial Music in This Repo?
-**No.** Commercial anime (*e.g., Demon Slayer by Ufotable / Aniplex*) and commercial cinema/soundtracks (*e.g., Zee Music, T-Series, Dharma Productions*) are protected under international copyright law. 
-
-1. **Unauthorized Distribution:** Embedding, uploading, or distributing commercial anime or music in a public repository constitutes unauthorized reproduction and public distribution.
-2. **Fair Use Limitations:** Fair Use (17 U.S.C. § 107) and Fair Dealing (Indian Copyright Act § 52) provide narrow exemptions for parody, review, and news reporting. General open-source tool portfolios do not qualify.
-3. **Platform Penalties:** GitHub strictly enforces automated fingerprinting and DMCA takedowns, which result in repository disablement and account strikes.
-4. **License Compliance:** This repository uses strictly licensed **Creative Commons (CC-BY 3.0 / CC0)** stock media (*Tears of Steel, Blender Foundation*) and royalty-free instrumental music (*Incompetech, CC-BY 4.0*).
 
 ---
 

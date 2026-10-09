@@ -19,27 +19,41 @@ __pycache__/
 .gradio/
 
 # =========================
-# Data / Media (DO NOT COMMIT)
+# Media Assets, Screenshots & Audio (DO NOT COMMIT)
 # =========================
+assets/
 videos/
 clips/
 Original Videos/
 Output Clips/
+*.mp4
+*.mp3
+*.gif
+*.aac
+*.mov
+*.mkv
 
+# =========================
+# Asset Generation & Capture Scripts (DO NOT COMMIT)
+# =========================
+scripts/
+
+# =========================
+# Models & Local Weights
+# =========================
 face_clip/clips/
 face_clip/output_clips/
 face_clip/videos/
 face_clip/models/
+*.pt
+*.onnx
 
 # =========================
-# Temporary Scratch
+# Temporary Scratch & Runtime Data
 # =========================
 scratch/
-
-# =========================
-# Notebooks (optional)
-# =========================
-.ipynb_checkpoints/
 web_data/
+.pytest_cache/
+.ipynb_checkpoints/
 Original Videos.zip
 Output Clips.zip
