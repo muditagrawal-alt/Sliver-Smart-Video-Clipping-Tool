@@ -1,3 +1,15 @@
-Jinja2
-opencv-python
-ultralytics
+# Core web and templating
+Jinja2>=3.1.0
+
+# Computer Vision & Deep Learning
+opencv-python>=4.8.0
+ultralytics>=8.3.0
+torch>=2.0.0
+torchvision>=0.15.0
+transformers>=4.30.0
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# Optional UI & Testing
+gradio>=4.0.0
+pytest>=8.0.0

@@ -28,13 +28,18 @@ Output Clips/
 
 face_clip/clips/
 face_clip/output_clips/
+face_clip/videos/
 face_clip/models/
+
+# =========================
+# Temporary Scratch
+# =========================
+scratch/
 
 # =========================
 # Notebooks (optional)
 # =========================
 .ipynb_checkpoints/
-f
 web_data/
 Original Videos.zip
 Output Clips.zip
