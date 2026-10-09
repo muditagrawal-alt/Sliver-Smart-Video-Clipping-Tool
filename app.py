@@ -216,6 +216,10 @@ def parse_cookies(environ) -> dict[str, str]:
             continue
         key, value = chunk.strip().split("=", 1)
         cookies[key] = unquote(value)
+    if SESSION_COOKIE not in cookies:
+        qs = parse_qs(environ.get("QUERY_STRING", ""))
+        if SESSION_COOKIE in qs:
+            cookies[SESSION_COOKIE] = qs[SESSION_COOKIE][0]
     return cookies
 
 
