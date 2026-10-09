@@ -36,18 +36,25 @@ Long-form raw video capture produces overwhelming volumes of unedited footage ac
 
 Experience the complete end-to-end workflow—from web workspace ingestion and zero-shot prompt guidance to multi-stage vision analysis, sample-accurate audio cutting, and web-ready H.264 export:
 
-https://github.com/user-attachments/assets/d65512b2-77b6-4476-ad99-8aad11aeb2c6
+<div align="center">
+
+[![▶️ Click to Play Full 720p HD Master Demo Video (25.5s)](assets/demo/demo_preview.gif)](https://github.com/muditagrawal-alt/Sliver-Smart-Video-Clipping-Tool/releases/download/v1.0.0/sliver_project_demo.mp4)
 
 <p align="center">
+  <a href="https://github.com/muditagrawal-alt/Sliver-Smart-Video-Clipping-Tool/releases/download/v1.0.0/sliver_project_demo.mp4">
+    <img src="https://img.shields.io/badge/▶️%20Play%20Video-720p%20Master%20with%20Sound-00C853?style=for-the-badge&logoColor=white" alt="Play Video">
+  </a>&nbsp;&nbsp;
   <a href="https://github.com/user-attachments/assets/d65512b2-77b6-4476-ad99-8aad11aeb2c6">
-    <img src="https://img.shields.io/badge/▶️%20Play%20Demo-720p%20Master%20Walkthrough%20(25.5s)-00C853?style=for-the-badge&logoColor=white" alt="Play Demo">
+    <img src="https://img.shields.io/badge/GitHub%20Stream-Inline%20Player-7928CA?style=for-the-badge&logoColor=white" alt="GitHub Stream">
   </a>&nbsp;&nbsp;
   <a href="https://github.com/muditagrawal-alt/Sliver-Smart-Video-Clipping-Tool/releases/tag/v1.0.0">
     <img src="https://img.shields.io/badge/Release-v1.0.0-blue?style=for-the-badge" alt="Release v1.0.0">
   </a>
   <br>
-  <em>720p 30fps Master Demo Walkthrough · Floating Subtitles · Engineered by Mudit Agrawal</em>
+  <em>👆 <strong>Click the animated player above to open & play the high-definition master video with audio</strong> · Engineered by Mudit Agrawal</em>
 </p>
+
+</div>
 
 ---
 
